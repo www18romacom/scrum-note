@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>스크럼 노트</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --ink:#18221f; --muted:#5d6b66; --line:#d9e1de;
+  --accent:#0d7a5c; --accent-ink:#ffffff; --accent-soft:#e3f2ec; --warn:#a15c00;
+  --field:#fbfcfc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101614; --surface:#18201d; --ink:#e6eeeb; --muted:#93a39d; --line:#2b3632;
+    --accent:#3fbf93; --accent-ink:#06140f; --accent-soft:#1c3129; --warn:#e3a54a;
+    --field:#141b18; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#18201d; --ink:#e6eeeb; --muted:#93a39d; --line:#2b3632;
+  --accent:#3fbf93; --accent-ink:#06140f; --accent-soft:#1c3129; --warn:#e3a54a;
+  --field:#141b18; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:20px 120px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:22px;font-weight:700;text-wrap:balance}
+.date{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;color:var(--muted)}
+.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.ok{background:var(--accent)} .dot.warn{background:var(--warn)}
+.banner{background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink)}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qhead label{font-weight:600;font-size:14px}
+.qhead label span{font-family:"IBM Plex Mono",ui-monospace,monospace;color:var(--accent);margin-right:6px}
+textarea{width:100%;resize:vertical;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;padding:10px 12px;field-sizing:content}
+textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;font-size:13px;font-weight:500;white-space:nowrap}
+button.copied{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips .lbl{font-size:12px;color:var(--muted);width:100%}
+.chip{border-radius:999px;padding:4px 10px;font-size:12px;background:var(--accent-soft);border-color:transparent;color:var(--ink);white-space:normal;text-align:left}
+details{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+details .body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:8px}
+.bar button{flex:1;padding:12px;font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+<style>
+body{margin:0}
+[hidden]{display:none!important}
+.setup{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.setup h2{margin:0;font-size:16px}
+.setup input{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;padding:10px 12px}
+.setup label{font-size:13px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;padding:0;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="date" id="today"></div>
+      <h1>데일리 스크럼 노트</h1>
+    </div>
+    <div class="status"><i class="dot" id="dot"></i><span id="statusText">불러오는 중</span></div>
+  </header>
+
+  <form class="setup" id="setup" hidden>
+    <h2>처음 한 번 연결 설정</h2>
+    <p class="hint">Apps Script 웹 앱 주소와 비밀 키를 넣으면 PC와 휴대폰이 같은 기록을 씁니다. 이 기기에만 저장됩니다.</p>
+    <label for="cfgUrl">웹 앱 주소</label>
+    <input id="cfgUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" required>
+    <label for="cfgKey">비밀 키</label>
+    <input id="cfgKey" type="password" autocomplete="off" required>
+    <div class="row"><button class="primary" type="submit">연결</button><button type="button" id="cfgCancel">닫기</button></div>
+  </form>
+
+  <div class="banner" id="banner" hidden></div>
+  <div id="questions"></div>
+
+  <p class="hint">Slack에서 <b>📋 스크럼 작성하기</b>를 누른 뒤, 칸마다 복사 버튼으로 붙여넣으세요. 입력한 내용은 자동 저장되고, 오늘 적은 Q4는 다음 날 Q2로 옮겨집니다.
+  <button type="button" class="linkbtn" id="openSetup">연결 설정</button></p>
+</div>
+
+<div class="bar"><div class="in">
+  <button type="button" id="copyAll">전체 복사</button>
+  <button type="button" id="reloadBtn">새로고침</button>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const QS=[
+  {k:"q1",t:"오늘 컨디션은 어떠신가요?",d:"좋습니다"},
+  {k:"q2",t:"어제 진행했던 일은 어떻게 되어가나요?",d:""},
+  {k:"q3",t:"어려운 점이나 도와드릴 사항이 있나요?",d:"없습니다."},
+  {k:"q4",t:"오늘 예정된 업무는 무엇이 있나요?",d:""},
+  {k:"q5",t:"공유할 내용이나 건의사항이 있나요?",d:"없습니다"}
+];
+const LS_CFG="scrum-note-config", LS_STATE="scrum-note-state";
+const pad=n=>String(n).padStart(2,"0");
+const now=new Date();
+const TODAY=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+const $=id=>document.getElementById(id);
+$("today").textContent=`${TODAY} (${["일","월","화","수","목","금","토"][now.getDay()]})`;
+
+let cfg=null, state={date:TODAY}, recent=[], calItems=[], saveTimer=null, dirtyAt=0;
+const el={};
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2000)}
+function setStatus(kind,text){$("dot").className="dot "+(kind||"");$("statusText").textContent=text}
+function banner(text){$("banner").hidden=!text;$("banner").textContent=text||""}
+
+// ---------- 서버(Apps Script) ----------
+async function apiGet(action){
+  const u=new URL(cfg.url);u.searchParams.set("action",action);u.searchParams.set("key",cfg.key);u.searchParams.set("date",TODAY);
+  const r=await fetch(u,{redirect:"follow"});
+  const j=await r.json();
+  if(!j.ok)throw Object.assign(new Error(j.error),{code:j.error});
+  return j;
+}
+async function apiSave(){
+  const r=await fetch(cfg.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({key:cfg.key,action:"save",row:{...state,source:"me"}})});
+  const j=await r.json();
+  if(!j.ok)throw Object.assign(new Error(j.error),{code:j.error});
+}
+function errText(e){
+  if(e&&e.code==="bad_key")return "비밀 키가 맞지 않습니다";
+  return "연결 안 됨 · 이 기기에만 저장됨";
+}
+
+// ---------- 화면 ----------
+const box=$("questions");
+box.style.cssText="display:flex;flex-direction:column;gap:12px";
+QS.forEach((q,i)=>{
+  const wrap=document.createElement("div");wrap.className="q";
+  wrap.innerHTML=`<div class="qhead"><label for="${q.k}"><span>Q${i+1}</span></label><button type="button" data-k="${q.k}">복사</button></div><textarea id="${q.k}" rows="${q.d?1:3}"></textarea>`;
+  wrap.querySelector("label").append(q.t);
+  box.append(wrap);
+  el[q.k]=wrap.querySelector("textarea");
+  if(q.k==="q4"||q.k==="q5"){const c=document.createElement("div");c.className="chips";c.id=q.k+"Chips";wrap.insertBefore(c,el[q.k]);}
+  if(q.k==="q2"){const r=document.createElement("button");r.type="button";r.id="reloadQ2";r.textContent="어제 Q4 다시 불러오기";r.style.alignSelf="flex-start";wrap.append(r);}
+  el[q.k].addEventListener("input",()=>{state[q.k]=el[q.k].value;queueSave();if(q.k==="q2"||q.k==="q4")renderChips()});
+});
+
+function render(){QS.forEach(q=>{if(document.activeElement!==el[q.k])el[q.k].value=state[q.k]??""});renderChips()}
+
+function itemsOf(text){
+  const lines=(text||"").split("\n").map(l=>l.trim()).filter(Boolean);
+  const numbered=lines.filter(l=>/^\d+[.)]\s*/.test(l));
+  return (numbered.length?numbered:lines).map(l=>l.replace(/^\d+[.)]\s*/,"")).filter(Boolean);
+}
+function lastQ4(){const r=recent.find(r=>r.date<TODAY&&r.q4);return r?r.q4:""}
+function frequent(){
+  const count=new Map();
+  recent.forEach(r=>new Set(itemsOf(r.q4)).forEach(t=>count.set(t,(count.get(t)||0)+1)));
+  return [...count].filter(([,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([t])=>t);
+}
+function chipGroup(c,label,items,kind){
+  if(!items.length)return;
+  const l=document.createElement("span");l.className="lbl";l.textContent=label;c.append(l);
+  items.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="+ "+t;b.dataset.item=t;b.dataset.kind=kind;c.append(b)});
+}
+function renderChips(){
+  const c4=$("q4Chips");c4.replaceChildren();
+  const have=new Set(itemsOf(state.q4));
+  const cal=calItems.filter(t=>!have.has(t));
+  const cont=itemsOf(lastQ4()).filter(t=>!have.has(t)&&!cal.includes(t));
+  const freq=frequent().filter(t=>!have.has(t)&&!cal.includes(t)&&!cont.includes(t));
+  chipGroup(c4,"오늘 캘린더 일정",cal,"plan");
+  chipGroup(c4,"이어서 할 일 (어제 Q4)",cont,"plan");
+  chipGroup(c4,"자주 하는 업무",freq,"plan");
+  if(!c4.childElementCount){const l=document.createElement("span");l.className="lbl";l.textContent="캘린더 일정이나 지난 기록이 있으면 여기서 고를 수 있습니다";c4.append(l)}
+
+  const c5=$("q5Chips");c5.replaceChildren();
+  const items=itemsOf(state.q2);
+  const l=document.createElement("span");l.className="lbl";
+  l.textContent=items.length?"어제 한 일 중 공유할 항목을 누르면 아래에 추가됩니다":"Q2를 채우면 여기서 공유할 항목을 고를 수 있습니다";
+  c5.append(l);
+  items.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="+ "+t;b.dataset.item=t;b.dataset.kind="share";c5.append(b)});
+}
+function addPlan(item){
+  const cur=(state.q4||"").replace(/\s+$/,"");
+  state.q4=(cur?cur+"\n":"")+(itemsOf(cur).length+1)+". "+item;
+  el.q4.value=state.q4;queueSave();renderChips();
+}
+function addShare(item){
+  const cur=(state.q5||"").trim(), line="- "+item+": ";
+  state.q5=(!cur||/^없습니다\.?$/.test(cur))?line:cur+"\n"+line;
+  el.q5.value=state.q5;queueSave();
+  el.q5.focus();el.q5.setSelectionRange(state.q5.length,state.q5.length);
+}
+
+async function copyText(text,btn){
+  try{await navigator.clipboard.writeText(text)}
+  catch(e){const ta=document.createElement("textarea");ta.value=text;document.body.append(ta);ta.select();try{document.execCommand("copy")}catch(_){}ta.remove()}
+  if(btn){const o=btn.textContent;btn.textContent="복사됨";btn.classList.add("copied");setTimeout(()=>{btn.textContent=o;btn.classList.remove("copied")},1400)}
+}
+box.addEventListener("click",e=>{
+  const ch=e.target.closest("button.chip");
+  if(ch){ch.dataset.kind==="plan"?addPlan(ch.dataset.item):addShare(ch.dataset.item);return}
+  if(e.target.id==="reloadQ2"){const p=lastQ4();if(!p){toast("불러올 지난 Q4가 없습니다");return}state.q2=p;render();queueSave();toast("지난 Q4를 Q2에 다시 넣었습니다");return}
+  const b=e.target.closest("button[data-k]");if(b)copyText(el[b.dataset.k].value,b);
+});
+$("copyAll").addEventListener("click",e=>copyText(QS.map((q,i)=>`Q${i+1}. ${q.t}\n${(el[q.k].value||"").trim()}`).join("\n\n"),e.currentTarget));
+
+// ---------- 저장 ----------
+function queueSave(){
+  dirtyAt=Date.now();
+  lsSet(LS_STATE,state);
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    if(!cfg){setStatus("warn","연결 안 됨 · 이 기기에만 저장됨");return}
+    try{setStatus("","저장 중");await apiSave();setStatus("ok","저장됨")}
+    catch(e){setStatus("warn",errText(e))}
+  },1200);
+}
+
+function freshState(){
+  const s={date:TODAY};QS.forEach(q=>s[q.k]=q.d);
+  s.q2=lastQ4();
+  return s;
+}
+
+// ---------- 불러오기 ----------
+async function load(){
+  const local=lsGet(LS_STATE);
+  if(!cfg){
+    state=(local&&local.date===TODAY)?local:{...freshState(),q2:(local&&local.date<TODAY&&local.q4)||""};
+    render();setStatus("warn","연결 설정 필요");$("setup").hidden=false;return;
+  }
+  setStatus("","불러오는 중");
+  try{
+    const j=await apiGet("get");
+    recent=j.recent||[];
+    if(j.row){
+      state={date:TODAY};QS.forEach(q=>state[q.k]=j.row[q.k]??"");
+      banner(j.row.source==="claude"?"Claude가 작성한 초안입니다. 확인하고 고친 뒤 붙여넣으세요.":"");
+    }else if(local&&local.date===TODAY){
+      state=local;queueSave();banner("");
+    }else{
+      state=freshState();
+      banner(state.q2?"어제 적은 ‘오늘 예정 업무’를 Q2에 옮겨 두었습니다. 실제 결과에 맞게 고치세요.":"");
+    }
+    lsSet(LS_STATE,state);render();setStatus("ok","저장됨");
+  }catch(e){
+    if(local&&local.date===TODAY){state=local;render()}
+    setStatus("warn",errText(e));
+    if(e&&e.code==="bad_key")$("setup").hidden=false;
+    return;
+  }
+  loadCalendar();
+}
+async function loadCalendar(){
+  try{
+    const j=await apiGet("calendar");
+    calItems=(j.events||[]).map(ev=>ev.title).filter(Boolean);
+    if(!itemsOf(state.q4).length&&calItems.length){
+      state.q4=calItems.map((t,i)=>`${i+1}. ${t}`).join("\n");
+      queueSave();toast("오늘 캘린더 일정을 Q4에 넣었습니다");
+    }
+    render();
+  }catch(e){calItems=[];render()}
+}
+
+// 다른 기기나 Claude가 고친 내용 반영: 화면으로 돌아왔을 때, 입력 중이 아니면 다시 불러옴
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cfg&&Date.now()-dirtyAt>5000)load()});
+$("reloadBtn").addEventListener("click",()=>{if(Date.now()-dirtyAt<1500){toast("저장이 끝난 뒤 다시 눌러 주세요");return}load()});
+
+// ---------- 연결 설정 ----------
+$("openSetup").addEventListener("click",()=>{$("setup").hidden=false;$("cfgUrl").value=cfg?.url||"";$("cfgKey").value=cfg?.key||"";$("cfgUrl").focus()});
+$("cfgCancel").addEventListener("click",()=>{$("setup").hidden=true});
+$("setup").addEventListener("submit",e=>{
+  e.preventDefault();
+  const url=$("cfgUrl").value.trim(), key=$("cfgKey").value.trim();
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){toast("…/exec 로 끝나는 웹 앱 주소를 넣어 주세요");return}
+  cfg={url,key};lsSet(LS_CFG,cfg);$("setup").hidden=true;load();
+});
+
+cfg=lsGet(LS_CFG);
+load();
+</script>
+</body>
+</html>
